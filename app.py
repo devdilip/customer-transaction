@@ -2,10 +2,12 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from routes.invoice.invoice_route import invoice_route_page
+# from routes.transaction.transaction_route import transaction_route_page
 
 app = Flask(__name__)
 db = SQLAlchemy()
 app.register_blueprint(invoice_route_page)
+# app.register_blueprint(transaction_route_page)
 
 
 def setup(app, **kwargs):

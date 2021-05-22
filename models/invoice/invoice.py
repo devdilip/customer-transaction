@@ -13,7 +13,7 @@ class Invoice(db.Model):
         self.id = id
         self.customer = customer
         self.date = date
-        self.is_active = total_quantity
+        self.total_quantity = total_quantity
         self.total_amount = total_amount
 
 
