@@ -70,7 +70,7 @@ def update_transactions(invoice_id, transactions):
                 add_transaction_in_db(new_id, invoice_id, t)
 
         for t in existing_transactions:
-            if t.id not in existing_transactions:
+            if t.id not in existing_transactions_ids:
                 delete_transactions_by_id(t)
 
         return "Transaction has been Updated Successfully!"
