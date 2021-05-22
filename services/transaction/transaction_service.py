@@ -38,14 +38,8 @@ def add_transactions(invoice_id, transactions):
         print(transactions)
 
         for t in transactions:
-            line_total = t['price'] * t['quantity']
-            quantity = t['quantity']
-            price = t['price']
             new_id = new_id + 1
-            create_transaction = Transaction(id=new_id, product='product', invoice_id=invoice_id, quantity=quantity,
-                                             price=price, line_total=line_total)
-            db.session.add(create_transaction)
-            db.session.commit()
+            add_transaction_in_db(new_id, invoice_id, t)
 
         return "Transaction has been Saved Successfully!"
     except IntegrityError as err:
@@ -62,21 +56,22 @@ def add_transactions(invoice_id, transactions):
 
 def update_transactions(invoice_id, transactions):
     try:
+        existing_transactions = Transaction.query.filter_by(invoice_id=invoice_id).all()
         total_id = db.session.query(Transaction).order_by('id').all()
         id_length = len(total_id)
         new_id = id_length + 1
-        print(invoice_id)
-        print(transactions)
 
-        # for t in transactions:
-        #     line_total = t['price'] * t['quantity']
-        #     quantity = t['quantity']
-        #     price = t['price']
-        #     new_id = new_id + 1
-        #     create_transaction = Transaction(id=new_id, product='product', invoice_id=invoice_id, quantity=quantity,
-        #                                      price=price, line_total=line_total)
-        #     db.session.add(create_transaction)
-        #     db.session.commit()
+        existing_transactions_ids = []
+        for t in transactions:
+            if hasattr(t, 'id'):
+                existing_transactions_ids.insert(t.id)
+            else:
+                new_id = new_id + 1
+                add_transaction_in_db(new_id, invoice_id, t)
+
+        for t in existing_transactions:
+            if t.id not in existing_transactions:
+                delete_transactions_by_id(t)
 
         return "Transaction has been Updated Successfully!"
     except IntegrityError as err:
@@ -91,11 +86,25 @@ def update_transactions(invoice_id, transactions):
             return "unknown error adding user"
 
 
+def add_transaction_in_db(new_id, invoice_id, t):
+    line_total = t['price'] * t['quantity']
+    quantity = t['quantity']
+    price = t['price']
+    create_transaction = Transaction(id=new_id, product='product', invoice_id=invoice_id, quantity=quantity,
+                                     price=price, line_total=line_total)
+    db.session.add(create_transaction)
+    db.session.commit()
+
+
+def delete_transactions_by_id(transaction):
+    db.session.delete(transaction)
+    db.session.commit()
+    return "Deleted!"
+
+
 def delete_transactions_by_invoice_id(invoice_id):
     transactions = Transaction.query.filter_by(invoice_id=invoice_id).all()
     for transaction in transactions:
-        db.session.delete(transaction)
-
-    db.session.commit()
+        delete_transactions_by_id(transaction)
     return "Deleted!"
 
