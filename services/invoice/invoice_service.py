@@ -84,10 +84,21 @@ def update_invoice(id, invoice_data):
     try:
         invoice = Invoice.query.filter_by(id=id).first()
         if bool(invoice) is True:
+            total_amount = 0
+            total_quantity = 0
+            transactions = invoice_data["transactions"]
+            for t in transactions:
+                total_amount = total_amount + (t['price'] * t['quantity'])
+                total_quantity = total_quantity + t['quantity']
+
             customer = invoice_data["customer"]
             invoice.customer = customer
             invoice.date = date.today()
+            invoice.total_amount = total_amount
+            invoice.total_quantity = total_quantity
             db.session.commit()
+            transaction_service.update_transactions(id, transactions)
+
             return "Invoice has been Updated Successfully!"
         else:
             add_invoice(invoice_data)
@@ -103,6 +114,8 @@ def delete_invoice(id):
         if bool(invoice) is True:
             db.session.delete(invoice)
             db.session.commit()
+            transaction_service.delete_transactions_by_invoice_id(id)
+
             return "Invoice has been Deleted Successfully!"
         else:
             return "Invoice has not found from given id!"

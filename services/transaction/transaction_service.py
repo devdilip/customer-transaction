@@ -58,3 +58,44 @@ def add_transactions(invoice_id, transactions):
             return "supplier does not exist"
         else:
             return "unknown error adding user"
+
+
+def update_transactions(invoice_id, transactions):
+    try:
+        total_id = db.session.query(Transaction).order_by('id').all()
+        id_length = len(total_id)
+        new_id = id_length + 1
+        print(invoice_id)
+        print(transactions)
+
+        # for t in transactions:
+        #     line_total = t['price'] * t['quantity']
+        #     quantity = t['quantity']
+        #     price = t['price']
+        #     new_id = new_id + 1
+        #     create_transaction = Transaction(id=new_id, product='product', invoice_id=invoice_id, quantity=quantity,
+        #                                      price=price, line_total=line_total)
+        #     db.session.add(create_transaction)
+        #     db.session.commit()
+
+        return "Transaction has been Updated Successfully!"
+    except IntegrityError as err:
+        db.session.rollback()
+        err_msg = err.args[0]
+
+        if "UNIQUE constraint failed: invoice_id" in err_msg:
+            return "Id should be unique for Transaction : (%s)" % id
+        elif "FOREIGN KEY constraint failed" in err_msg:
+            return "supplier does not exist"
+        else:
+            return "unknown error adding user"
+
+
+def delete_transactions_by_invoice_id(invoice_id):
+    transactions = Transaction.query.filter_by(invoice_id=invoice_id).all()
+    for transaction in transactions:
+        db.session.delete(transaction)
+
+    db.session.commit()
+    return "Deleted!"
+
