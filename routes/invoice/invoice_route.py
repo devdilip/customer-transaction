@@ -47,9 +47,5 @@ def delete_invoice_by_id(id):
 
 def update_invoice(id):
     json_data = request.json
-    customer = json_data["customer"]
-    date = json_data["date"]
-    total_quantity = json_data["total_quantity"]
-    total_amount = json_data["total_amount"]
-    invoices = invoice_service.update_invoice(id, customer, date, total_quantity, total_amount)
+    invoices = invoice_service.update_invoice(id, json_data)
     return invoices

@@ -80,18 +80,17 @@ def fetch_invoice_by_id(id):
     return result
 
 
-def update_invoice(id, customer, date, total_quantity, total_amount):
+def update_invoice(id, invoice_data):
     try:
         invoice = Invoice.query.filter_by(id=id).first()
         if bool(invoice) is True:
+            customer = invoice_data["customer"]
             invoice.customer = customer
-            invoice.date = date
-            invoice.total_quantity = total_quantity
-            invoice.total_amount = total_amount
+            invoice.date = date.today()
             db.session.commit()
             return "Invoice has been Updated Successfully!"
         else:
-            return "Invoice has not found from given id!"
+            add_invoice(invoice_data)
     except IntegrityError as err:
         db.session.rollback()
         err_msg = err.args[0]
