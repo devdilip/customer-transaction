@@ -3,6 +3,7 @@ from models.invoice.invoice import Invoice
 from app import db, app
 from datetime import date
 from services.transaction import transaction_service
+from utils import utils
 
 from flask_marshmallow import Marshmallow
 
@@ -32,14 +33,12 @@ def add_invoice(invoice_data):
             total_amount = total_amount + (t['price'] * t['quantity'])
             total_quantity = total_quantity + t['quantity']
 
-        print(total_amount)
-        print(total_quantity)
-        # new_id = id_length + 1
-        # create_invoice = Invoice(id=new_id, customer=customer, date=today_date, total_quantity=total_quantity,
-        #                       total_amount=total_amount)
-        # db.session.add(create_invoice)
-        # db.session.commit()
-        # transaction_service.add_transactions(new_id, transactions)
+        new_id = id_length + 1
+        create_invoice = Invoice(id=new_id, customer=customer, date=today_date, total_quantity=total_quantity,
+                                 total_amount=total_amount)
+        db.session.add(create_invoice)
+        db.session.commit()
+        transaction_service.add_transactions(new_id, transactions)
 
         return "Invoice has been Saved Successfully!"
     except IntegrityError as err:
@@ -65,7 +64,7 @@ def fetch_invoice():
         r['transaction'] = transaction
 
     for i in result:
-        i['total_amount'] = str(i['total_amount'])
+        i['total_amount'] = utils.convert_decimal(i['total_amount'])
 
     return result
 
@@ -75,7 +74,7 @@ def fetch_invoice_by_id(id):
     invoice_schema = InvoiceSchema()
     result = invoice_schema.dump(invoice)
     if bool(invoice) is True:
-        result['total_amount'] = str(result['total_amount'])
+        result['total_amount'] = utils.convert_decimal(result['total_amount'])
         transaction = transaction_service.fetch_status_by_invoice_id(invoice.id)
         result['transaction'] = transaction
     return result
