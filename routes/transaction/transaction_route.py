@@ -7,9 +7,8 @@ from services.transaction import transaction_service
 @transaction_route_page.route("/invoices/<invoice_id>/transaction", methods=["POST"])
 def add_transactions_by_invoice_id(invoice_id):
     json_data = request.json
-    todos = transaction_service.add_transactions(invoice_id, json_data)
-    print(todos)
-    return jsonify(todos)
+    transaction = transaction_service.add_transactions(invoice_id, json_data)
+    return jsonify(transaction)
 
 
 @transaction_route_page.route("/invoices/transaction/<id>", methods=['GET', 'DELETE'])
