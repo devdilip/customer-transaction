@@ -11,8 +11,8 @@ class Transaction(db.Model):
     invoice_id = Column(Integer, ForeignKey('invoice.id'))
     invoice = relationship("Invoice", backref=backref("invoice", uselist=False))
     quantity = db.Column(db.Integer)
-    price = db.Column(db.Integer)
-    line_total = db.Column(db.Integer)
+    price = db.Column(db.Numeric)
+    line_total = db.Column(db.Numeric)
 
     def __init__(self, id, product, invoice_id, quantity, price, line_total):
         self.id = id

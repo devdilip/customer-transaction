@@ -1,6 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 from models.invoice.invoice import Invoice
 from app import db, app
+from datetime import date
 from services.transaction import transaction_service
 
 from flask_marshmallow import Marshmallow
@@ -18,17 +19,34 @@ def create_tables():
     db.create_all()
 
 
-def add_invoice(id, customer, date, total_quantity, total_amount):
+def add_invoice(invoice_data):
     try:
-        create_todo = Invoice(id=id, customer=customer, date=date, total_quantity=total_quantity, total_amount=total_amount)
-        db.session.add(create_todo)
-        db.session.commit()
+        total_id = db.session.query(Invoice).order_by('id').all()
+        id_length = len(total_id)
+        customer = invoice_data["customer"]
+        total_amount = 0
+        total_quantity = 0
+        today_date = date.today()
+        transactions = invoice_data["transactions"]
+        for t in transactions:
+            total_amount = total_amount + (t['price'] * t['quantity'])
+            total_quantity = total_quantity + t['quantity']
+
+        print(total_amount)
+        print(total_quantity)
+        # new_id = id_length + 1
+        # create_invoice = Invoice(id=new_id, customer=customer, date=today_date, total_quantity=total_quantity,
+        #                       total_amount=total_amount)
+        # db.session.add(create_invoice)
+        # db.session.commit()
+        # transaction_service.add_transactions(new_id, transactions)
+
         return "Invoice has been Saved Successfully!"
     except IntegrityError as err:
         db.session.rollback()
         err_msg = err.args[0]
 
-        if "UNIQUE constraint failed: todo.id" in err_msg:
+        if "UNIQUE constraint failed: invoice.id" in err_msg:
             return "Id should be unique : (%s)" % id
         elif "FOREIGN KEY constraint failed" in err_msg:
             return "supplier does not exist"
@@ -38,19 +56,26 @@ def add_invoice(id, customer, date, total_quantity, total_amount):
 
 def fetch_invoice():
     invoices = Invoice.query.all()
+    print(invoices)
     invoice_schema = InvoiceSchema(many=True)
+
     result = invoice_schema.dump(invoices)
     for r in result:
         transaction = transaction_service.fetch_status_by_invoice_id(r['id'])
         r['transaction'] = transaction
+
+    for i in result:
+        i['total_amount'] = str(i['total_amount'])
+
     return result
 
 
 def fetch_invoice_by_id(id):
     invoice = Invoice.query.filter_by(id=id).first()
-    todo_schema = InvoiceSchema()
-    result = todo_schema.dump(invoice)
+    invoice_schema = InvoiceSchema()
+    result = invoice_schema.dump(invoice)
     if bool(invoice) is True:
+        result['total_amount'] = str(result['total_amount'])
         transaction = transaction_service.fetch_status_by_invoice_id(invoice.id)
         result['transaction'] = transaction
     return result
@@ -76,13 +101,13 @@ def update_invoice(id, customer, date, total_quantity, total_amount):
 
 def delete_invoice(id):
     try:
-        todos = Invoice.query.filter_by(id=id).first()
-        if bool(todos) is True:
-            db.session.delete(todos)
+        invoice = Invoice.query.filter_by(id=id).first()
+        if bool(invoice) is True:
+            db.session.delete(invoice)
             db.session.commit()
-            return "Todo has been Deleted Successfully!"
+            return "Invoice has been Deleted Successfully!"
         else:
-            return "Todo has not found from given id!"
+            return "Invoice has not found from given id!"
     except IntegrityError as err:
         db.session.rollback()
         err_msg = err.args[0]
